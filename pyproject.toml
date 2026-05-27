@@ -1,0 +1,64 @@
+[build-system]
+requires = ["scikit-build-core>=0.10", "pybind11>=2.12"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "vrptw-fleetmin"
+version = "0.0.1"
+description = "Fast VRPTW constructive heuristics and an ILS-based fleet-size minimizer (PyVRP 0.12.2 HGS local-search backend)."
+readme = "README.md"
+authors = [
+    { name = "Florian Rascoussier", email = "rascoussier.florian@gmail.com" },
+]
+maintainers = [
+    { name = "Florian Rascoussier", email = "rascoussier.florian@gmail.com" },
+]
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.11"
+dependencies = [
+    "pyvrp>=0.12.2,<0.13", # last 0.12.x; 0.13+ dropped HGS solver (switch to ILS) and renamed private APIs we depend on
+    "mamut-routing-lib>=0.1",
+]
+keywords = [
+    "vehicle routing problem",
+    "VRP",
+    "VRPTW",
+    "time windows",
+    "iterated local search",
+    "ILS",
+    "constructive heuristics",
+    "operations research",
+    "combinatorial optimization",
+    "fleet size minimization",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: C++",
+    "Topic :: Scientific/Engineering",
+]
+
+[project.urls]
+Homepage = "https://github.com/0nyr/vrptw-fleetmin"
+Repository = "https://github.com/0nyr/vrptw-fleetmin"
+Issues = "https://github.com/0nyr/vrptw-fleetmin/issues"
+"Related: MAMUT-routing" = "https://github.com/0nyr/MAMUT-routing"
+"Related: mamut-routing-lib" = "https://pypi.org/project/mamut-routing-lib/"
+"Related: vrptw-fleet-lb-cg" = "https://github.com/0nyr/vrptw-fleet-lb-cg"
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7",
+]
+
+[tool.scikit-build]
+cmake.build-type = "Release"
+wheel.packages = ["src/vrptw_fleetmin"]

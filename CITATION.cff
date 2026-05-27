@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+title: "vrptw-fleetmin"
+message: "If you use this software, please cite it using the metadata below."
+type: software
+version: "0.0.1"
+authors:
+  - given-names: Florian
+    family-names: Rascoussier
+    alias: Onyr
+    affiliation: IMT Atlantique; INSA Lyon
+    orcid: "https://orcid.org/0009-0005-3253-9814"
+repository-code: "https://github.com/0nyr/vrptw-fleetmin"
+abstract: >-
+  Fast VRPTW constructive heuristics (nearest-neighbor, best-insertion, regret-k)
+  and an ILS-based fleet-size minimizer, using PyVRP 0.12.2 HGS as the
+  local-search backend.
+keywords:
+  - vehicle routing problem
+  - VRPTW
+  - time windows
+  - iterated local search
+  - ILS
+  - constructive heuristics
+  - operations research
+license: MIT
+version: 0.1.0
+date-released: "2026-05-27"
