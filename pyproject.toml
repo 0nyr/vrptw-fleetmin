@@ -67,3 +67,11 @@ pythonpath = ["tests"]
 markers = [
     "slow: end-to-end tests that solve real instances with a non-trivial time budget",
 ]
+
+# cibuildwheel: invoked LOCALLY (via Docker on the dev host), not on CI.
+# See papers/paper6/reports/task_open_sourcing.md §7 Step 6 for the rationale.
+[tool.cibuildwheel]
+build = "cp311-* cp312-* cp313-*"
+skip = "*-musllinux_*"
+archs = ["x86_64"]
+build-verbosity = 1
