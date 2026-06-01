@@ -1,13 +1,13 @@
 /**
  * @file bindings.cpp
- * @brief pybind11 module definition for paper6_native.
+ * @brief pybind11 module definition for the vrptw_fleetmin._native extension.
  *
  * Exposes the C++ VRPTW data structures, lower bounds, and
  * initialization heuristics to Python.
  *
- * Usage from Python:
- *   from paper6_native import VRPTWData, capacity_lower_bound
- *   from paper6_native import (
+ * Usage from Python (preferred via the public facade):
+ *   from vrptw_fleetmin.construct import VRPTWData, capacity_lower_bound
+ *   from vrptw_fleetmin.construct import (
  *       ConstructionResult,
  *       ConstructionStatus,
  *       nearest_neighbor,
