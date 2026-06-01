@@ -2,7 +2,7 @@ cff-version: 1.2.0
 title: "vrptw-fleetmin"
 message: "If you use this software, please cite it using the metadata below."
 type: software
-version: "0.0.1"
+version: "0.1.0"
 authors:
   - given-names: Florian
     family-names: Rascoussier
@@ -23,5 +23,4 @@ keywords:
   - constructive heuristics
   - operations research
 license: MIT
-version: 0.1.0
-date-released: "2026-05-27"
+date-released: "2026-06-02"

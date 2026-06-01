@@ -4,7 +4,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "vrptw-fleetmin"
-version = "0.0.1"
+version = "0.1.0"
 description = "Fast VRPTW constructive heuristics and an ILS-based fleet-size minimizer (PyVRP 0.12.2 HGS local-search backend)."
 readme = "README.md"
 authors = [
