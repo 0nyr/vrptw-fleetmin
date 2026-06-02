@@ -28,6 +28,9 @@ keywords = [
     "iterated local search",
     "ILS",
     "constructive heuristics",
+    "nearest neighbor",
+    "cheapest insertion",
+    "regret insertion",
     "operations research",
     "combinatorial optimization",
     "fleet size minimization",
@@ -68,8 +71,16 @@ markers = [
     "slow: end-to-end tests that solve real instances with a non-trivial time budget",
 ]
 
-# cibuildwheel: invoked LOCALLY (via Docker on the dev host), not on CI.
-# See papers/paper6/reports/task_open_sourcing.md §7 Step 6 for the rationale.
+# cibuildwheel is invoked LOCALLY (via Docker on the dev host) rather than
+# from a GitHub Action while the package remains in early alpha. The CLI
+# orchestrates a manylinux2014 Docker build so the resulting wheels carry the
+# manylinux_2_17 / manylinux2014 tag and are portable across virtually every
+# Linux x86_64 distro (glibc 2.17 and newer: RHEL 7+, Ubuntu 14.04+, etc.),
+# without paying the maintenance cost of a CI workflow.
+#
+# macOS, Windows, Linux aarch64, and musllinux (Alpine) are deliberately out
+# of scope for v0.1.0 — users on those platforms install from sdist and pip
+# builds the C++ extension locally (CMake >= 3.20, C++17 compiler required).
 [tool.cibuildwheel]
 build = "cp311-* cp312-* cp313-*"
 skip = "*-musllinux_*"
