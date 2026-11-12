@@ -1,9 +1,9 @@
 """PyVRP helpers used by the ILS.
 
 Contents:
-- `extract_routes_from_pyvrp_solution`: convert a PyVRP solution to lists of
+- `extract_routes_from_pyvrp_solution` converts a PyVRP solution to lists of
   customer IDs.
-- `reevaluate_solution_on_float_instance`: check and cost a solution on the
+- `reevaluate_solution_on_float_instance` checks and costs a solution on the
   float (unscaled) instance with `mamut_routing_lib`.
 
 These are defined here rather than imported from `mamut-routing-lib` because the
@@ -46,9 +46,9 @@ def reevaluate_solution_on_float_instance(
     float_instance
         Instance with float arc costs for accurate cost computation.
     original_instance
-        Original instance (kept in signature for caller compatibility; not
-        consumed — `check_vrptw_solution` validates time windows directly off
-        `float_instance`).
+        Original instance, kept in the signature for caller compatibility. It
+        is not read, because `check_vrptw_solution` validates time windows off
+        `float_instance`.
 
     Returns
     -------

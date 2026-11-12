@@ -78,8 +78,9 @@ markers = [
 # without paying the maintenance cost of a CI workflow.
 #
 # macOS, Windows, Linux aarch64, and musllinux (Alpine) are deliberately out
-# of scope for v0.1.0 — users on those platforms install from sdist and pip
-# builds the C++ extension locally (CMake >= 3.20, C++17 compiler required).
+# of scope for v0.1.0. On those platforms the package is built from source,
+# which compiles the C++ extension locally (CMake >= 3.20 and a C++17
+# compiler required).
 [tool.cibuildwheel]
 build = "cp311-* cp312-* cp313-*"
 skip = "*-musllinux_*"

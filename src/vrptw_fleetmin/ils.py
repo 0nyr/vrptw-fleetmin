@@ -2,7 +2,7 @@
 
 The ILS uses the local-search and repair operators of PyVRP 0.12.2. It is a
 separate algorithm from the ``IteratedLocalSearch`` solver shipped by PyVRP
-0.13 and later. The method is described in chapter 7 of the PhD thesis of
+0.13. The method is described in chapter 7 of the PhD thesis of
 Florian Rascoussier (IMT Atlantique and INSA Lyon, 2026, in preparation).
 
 Architecture
@@ -17,7 +17,7 @@ Architecture
 Public entry point
 ------------------
 ``ils_vehicle_min(scaled_instance, time_limit_s, seed, *, variant='v4', ...)``
-dispatches to one of four variants. v4 is the default.
+dispatches to one of 4 variants. v4 is the default.
 
 Variants
 --------

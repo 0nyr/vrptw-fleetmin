@@ -2,7 +2,7 @@
 
 Constructive heuristics (nearest-neighbor, best-insertion, regret-k) and an iterated local search (ILS) for fleet-size minimization on the Vehicle Routing Problem with Time Windows (VRPTW). The constructive heuristics and a capacity lower bound are written in C++ and exposed to Python through pybind11.
 
-The ILS uses the local-search and repair operators of [PyVRP](https://github.com/PyVRP/PyVRP) 0.12.2. It is a separate algorithm from the `IteratedLocalSearch` solver that PyVRP ships from version 0.13 onwards, and it does not call PyVRP's own solvers.
+The ILS uses the local-search and repair operators of [PyVRP](https://github.com/PyVRP/PyVRP) 0.12.2. It is a separate algorithm from the `IteratedLocalSearch` solver that PyVRP ships in version 0.13, and it does not call PyVRP's own solvers.
 
 ## Status
 
@@ -149,16 +149,16 @@ from vrptw_fleetmin.construct import (                   # C++ constructive heur
 
 All variants share the same structure.
 
-1. Kickstart: run 4 constructive heuristics (nearest-neighbor, parallel best-insertion, regret-2 and regret-3), polish each solution with PyVRP local search, and keep the one with the fewest routes, then the lowest cost.
-2. Route elimination: remove one route and reinsert its customers into the others, then polish with local search and, if needed, with a local search whose penalties are boosted by the scaling factor. A candidate is accepted only if it is feasible and has fewer routes. The route to remove is the smallest one (probability 0.5), the one with the lowest demand (0.2), a random one among the 3 smallest (0.2) or a random one (0.1).
-3. Perturbation: after a failed elimination, remove a random fraction of the customers and reinsert them with `greedy_repair`. The fraction grows with the number of consecutive failures.
+1. Kickstart. The ILS runs 4 constructive heuristics (nearest-neighbor, parallel best-insertion, regret-2 and regret-3), polishes each solution with PyVRP local search, and keeps the one with the fewest routes, then the lowest cost.
+2. Route elimination. The ILS removes one route and reinserts its customers into the others, then polishes with local search and, if needed, with a local search whose penalties are boosted by the scaling factor. A candidate is accepted only if it is feasible and has fewer routes. The route to remove is the smallest one (probability 0.5), the one with the lowest demand (0.2), a random one among the 3 smallest (0.2) or a random one (0.1).
+3. Perturbation. After a failed elimination, the ILS removes a random fraction of the customers and reinserts them with `greedy_repair`. The fraction grows with the number of consecutive failures.
 
 The variants differ in the reinsertion operator and the perturbation schedule.
 
-- `v1`: reinsertion with `greedy_repair`, 5 tries per elimination attempt, perturbation fractions 8 %, 15 % and 25 %.
-- `v2`: reinsertion with `nearest_route_insert`, 7 tries, perturbation fractions 6 %, 12 % and 25 %, and after 20 consecutive failures the 3 smallest routes are destroyed and rebuilt.
-- `v3`: before reinsertion, 10 % of the customers of the other routes are also removed, and both `greedy_repair` and `nearest_route_insert` are tried. 10 tries, perturbation fractions 8 %, 15 % and 25 %, and the 3 smallest routes are rebuilt after 15 consecutive failures.
-- `v4` (default): uses the `v2` reinsertion until 5 consecutive failures, then switches to the `v3` reinsertion. 8 tries, perturbation fractions 6 %, 15 % and 25 %, and the 3 smallest routes are rebuilt after 18 consecutive failures.
+- `v1` reinserts with `greedy_repair`, makes 5 tries per elimination attempt and uses perturbation fractions of 8 %, 15 % and 25 %.
+- `v2` reinserts with `nearest_route_insert`, makes 7 tries and uses perturbation fractions of 6 %, 12 % and 25 %. After 20 consecutive failures, it destroys the 3 smallest routes and rebuilds them.
+- `v3` also removes 10 % of the customers of the other routes before reinsertion and tries both `greedy_repair` and `nearest_route_insert`. It makes 10 tries, uses perturbation fractions of 8 %, 15 % and 25 %, and rebuilds the 3 smallest routes after 15 consecutive failures.
+- `v4` (default) uses the `v2` reinsertion until 5 consecutive failures, then switches to the `v3` reinsertion. It makes 8 tries, uses perturbation fractions of 6 %, 15 % and 25 %, and rebuilds the 3 smallest routes after 18 consecutive failures.
 
 The exact thresholds are in [`src/vrptw_fleetmin/ils.py`](src/vrptw_fleetmin/ils.py). The variants `v1` to `v3` are kept for reference and reproducibility.
 
@@ -174,9 +174,9 @@ In the meantime, you can cite this repository with the metadata in [`CITATION.cf
 
 ## Related projects
 
-- [MAMUT-routing](https://github.com/ANR-MAMUT/MAMUT-routing): VRPTW benchmark instances, best-known solutions and tooling, source of the test fixtures.
-- [mamut-routing-lib](https://pypi.org/project/mamut-routing-lib/): Python library for loading and validating routing benchmark instances, used by this package.
-- [vrptw-powerful-route-minimization-heuristic](https://github.com/Astronomax/vrptw-powerful-route-minimization-heuristic): open-source implementation of the route minimization heuristic of Nagata and Bräysy (2009) by [Anton Kuznets](https://github.com/Astronomax).
+- [MAMUT-routing](https://github.com/ANR-MAMUT/MAMUT-routing) provides VRPTW benchmark instances, best-known solutions and tooling. It is the source of the test fixtures.
+- [mamut-routing-lib](https://pypi.org/project/mamut-routing-lib/) is a Python library for loading and validating routing benchmark instances. This package depends on it.
+- [vrptw-powerful-route-minimization-heuristic](https://github.com/Astronomax/vrptw-powerful-route-minimization-heuristic) is an open-source implementation of the route minimization heuristic of Nagata and Bräysy (2009) by [Anton Kuznets](https://github.com/Astronomax).
 
 ## Acknowledgements
 
