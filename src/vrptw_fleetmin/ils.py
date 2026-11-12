@@ -1,8 +1,9 @@
 """ILS (Iterated Local Search) for vehicle-count minimization on VRPTW.
 
-Local-search backend: PyVRP 0.12.2 HGS. **This is NOT the ILS introduced in
-PyVRP 0.13+** — it is a separate algorithm developed in the context of paper6
-("From Fleet Bounds to Cost Optimization", Rascoussier et al., to appear).
+The ILS uses the local-search and repair operators of PyVRP 0.12.2. It is a
+separate algorithm from the ``IteratedLocalSearch`` solver shipped by PyVRP
+0.13 and later. The method is described in chapter 7 of the PhD thesis of
+Florian Rascoussier (IMT Atlantique and INSA Lyon, 2026, in preparation).
 
 Architecture
 ------------
@@ -16,15 +17,15 @@ Architecture
 Public entry point
 ------------------
 ``ils_vehicle_min(scaled_instance, time_limit_s, seed, *, variant='v4', ...)``
-dispatches to one of four variants. v4 is the recommended default.
+dispatches to one of four variants. v4 is the default.
 
 Variants
 --------
 - ``v1``: greedy_repair + basic perturbation.
 - ``v2``: nearest_route_insert + multi-route ruin.
 - ``v3``: dual repair (both greedy + nearest) + 10% slack creation.
-- ``v4``: adaptive — starts fast (v2-style), escalates to slack (v3-style).
-  Recommended.
+- ``v4``: adaptive. Starts with v2-style repair and switches to v3-style
+  slack creation after repeated failures. Default.
 
 Design references
 -----------------
@@ -58,7 +59,7 @@ from ._pyvrp_utils import (
 )
 
 DEFAULT_SCALING_FACTOR = 1000
-"""Default arc-cost scaling factor (legacy P=1000 from paper6 experiments)."""
+"""Default arc-cost scaling factor P."""
 
 
 # ---------------------------------------------------------------------------
@@ -1003,7 +1004,7 @@ def _ils_vehicle_min_v4(
     Strategy:
     - First tries: fast elimination (nearest_route_insert, no slack)
     - After 5 failures: switch to thorough (dual repair + slack creation)
-    - After 12 failures: multi-route ruin reset
+    - After 18 failures: multi-route ruin reset
     - Perturbation intensifies with failures
     """
     t0 = time.perf_counter()
@@ -1180,8 +1181,9 @@ def ils_vehicle_min(
     ----------
     scaled_instance
         VRPTW instance with integer-scaled arc costs (use scaling factor ``P``
-        consistent with ``scaling_factor``). PyVRP HGS operates on integer
-        costs, so float instances must be scaled before being passed in.
+        consistent with ``scaling_factor``). The PyVRP operators and the C++
+        heuristics work on integer costs, so float instances must be scaled
+        before being passed in.
     time_limit_s
         Wall-clock time budget in seconds for the entire ILS run
         (kickstart + elimination loop).
@@ -1191,15 +1193,15 @@ def ils_vehicle_min(
         same ``scaled_instance`` (which depends on rounding mode).
     variant
         One of ``'v1'``, ``'v2'``, ``'v3'``, ``'v4'``. ``'v4'`` is the
-        recommended default and the one used in the paper6 main results.
-        See the module docstring for behavioral differences.
+        default. See the module docstring for behavioral differences.
     float_instance
         Optional float-cost copy of ``scaled_instance`` used to re-evaluate
-        accepted solutions for float-feasibility checks. If ``None``, no
-        re-evaluation is performed.
+        accepted solutions for float-feasibility checks. The check runs only
+        when both ``float_instance`` and ``base_instance`` are given.
     base_instance
-        Optional original (un-scaled, un-rounded) instance. Currently kept for
-        caller-side compatibility; not consumed by the inner re-evaluation.
+        Optional original (un-scaled, un-rounded) instance. It must be given
+        for the float-feasibility check to run, but its content is not read
+        by the re-evaluation.
     scaling_factor
         The factor ``P`` used to scale arc costs in ``scaled_instance``. Drives
         the scaling-aware PyVRP penalty booster.

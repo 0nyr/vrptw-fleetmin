@@ -20,7 +20,7 @@ INSTANCE_NAMES: list[str] = ["C101", "C201", "R101", "R201", "RC101", "RC201"]
 
 TEST_SCALING_FACTOR = 1000
 """Scale Solomon float arc costs / windows / service times by this factor
-before rounding to int, matching paper6's default ``P=1000``."""
+before rounding to int, matching the ILS default ``P=1000``."""
 
 
 def make_scaled_native_data(
@@ -30,7 +30,7 @@ def make_scaled_native_data(
 
     Solomon instances carry float arc costs / time windows / service times; the
     C++ heuristics work in integers. This applies a uniform ceil-scaled cast,
-    matching the scaling pattern paper6 uses for the same heuristics.
+    the same scaling as :func:`scale_instance_for_ils`.
     """
     arc_costs_scaled: list[list[int]] = [
         [int(ceil(c * scaling_factor)) for c in row] for row in instance.arc_costs

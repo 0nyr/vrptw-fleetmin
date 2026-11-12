@@ -1,16 +1,12 @@
-"""PyVRP helpers vendored from paper6.
+"""PyVRP helpers used by the ILS.
 
 Contents:
-- `extract_routes_from_pyvrp_solution` — lifted from
-  `papers/paper6/src/python/methods/pyvrp_common.py`.
-- `reevaluate_solution_on_float_instance` — lifted from
-  `papers/paper6/src/python/experiment.py`.
+- `extract_routes_from_pyvrp_solution`: convert a PyVRP solution to lists of
+  customer IDs.
+- `reevaluate_solution_on_float_instance`: check and cost a solution on the
+  float (unscaled) instance with `mamut_routing_lib`.
 
-Both functions already use `mamut_routing_lib` internally (the paper6 sources
-were migrated to mamut-routing-lib in the paper6 migration of 2026-06-01), so
-this module has no paper6-internal closure.
-
-These are vendored rather than re-exported from `mamut-routing-lib` because the
+These are defined here rather than imported from `mamut-routing-lib` because the
 equivalent lib helper (`mamut_routing_lib.solvers.pyvrp._extract_routes`) is
 private (underscore-prefixed) and not part of its stable public API surface.
 """

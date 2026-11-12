@@ -90,8 +90,8 @@ def test_regret_k_builds_feasible_cover(solomon_instance_and_bks, k):
 
 
 def test_k_regret_insertion_matches_regret_k_alias_on_c101(c101_instance_and_bks):
-    """``k_regret_insertion`` is the alias entry point used by paper6; on a
-    parameter-free call it should produce a feasible cover on C101."""
+    """``k_regret_insertion`` is an alias entry point for regret-k insertion.
+    With ``k=2`` it should produce a feasible cover on C101."""
     instance, _bks = c101_instance_and_bks
     data = make_scaled_native_data(instance)
     result = construct.k_regret_insertion(data, k=2)
