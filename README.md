@@ -22,7 +22,7 @@ source .venv/bin/activate
 pip install .            # or: pip install ".[test]" to also install pytest
 ```
 
-Once the repository is public, the same installation works without a manual clone:
+The same installation also works without a manual clone:
 
 ```bash
 pip install git+https://github.com/0nyr/vrptw-fleetmin
@@ -48,6 +48,8 @@ python -m pytest
 | [`pytest`](https://pypi.org/project/pytest/) (extra `[test]`) | `>= 7` | tests |
 
 The `pyvrp` upper bound is needed because PyVRP 0.13 no longer ships the `pyvrp.repair` module that the ILS imports. The package has been tested on Linux x86_64 with Python 3.13, PyVRP 0.12.2, mamut-routing-lib 0.12.0, GCC 15.2 and CMake 4.1. Other Python versions and platforms have not been tested.
+
+The `pyvrp` extra of mamut-routing-lib (`mamut-routing-lib[pyvrp]`) asks for PyVRP 0.13.4 or later, which this package cannot use. Install mamut-routing-lib without that extra. If a newer PyVRP is installed anyway, `import vrptw_fleetmin` raises an `ImportError` that explains the conflict and gives the command to restore a supported version.
 
 ## Quick start
 

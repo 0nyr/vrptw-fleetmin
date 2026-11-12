@@ -15,8 +15,13 @@ Public API
 
 from __future__ import annotations
 
-from vrptw_fleetmin.ils import ILSResult, ILSTrace, ils_vehicle_min
-from vrptw_fleetmin import construct
+from vrptw_fleetmin._compat import require_supported_pyvrp
+
+# Fail early, with an explanation, when the installed PyVRP cannot run the ILS.
+require_supported_pyvrp()
+
+from vrptw_fleetmin.ils import ILSResult, ILSTrace, ils_vehicle_min  # noqa: E402
+from vrptw_fleetmin import construct  # noqa: E402
 
 __all__ = [
     "ILSResult",
