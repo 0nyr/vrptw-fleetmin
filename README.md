@@ -1,63 +1,135 @@
 # vrptw-fleetmin
 
-Fast VRPTW constructive heuristics (nearest-neighbor, best-insertion, regret-k) and an ILS-based fleet-size minimizer for the Vehicle Routing Problem with Time Windows.
+Constructive heuristics (nearest-neighbor, best-insertion, regret-k) and an iterated local search (ILS) for fleet-size minimization on the Vehicle Routing Problem with Time Windows (VRPTW). The constructive heuristics and a capacity lower bound are written in C++ and exposed to Python through pybind11.
 
-> **Local-search backend: PyVRP 0.12.2 HGS** (Hybrid Genetic Search).
-> This package pins `pyvrp==0.12.2` (and possible future `0.12.x` versions). It does **not** use the ILS introduced in
-> PyVRP 0.13+. The "ILS" exposed here is a separate algorithm developed in the
-> context of so-called project `paper6` (see Citation below) that uses PyVRP's HGS solely as a
-> local-search polishing step.
+The ILS uses the local-search and repair operators of [PyVRP](https://github.com/PyVRP/PyVRP) 0.12.2. It is a separate algorithm from the `IteratedLocalSearch` solver that PyVRP ships from version 0.13 onwards, and it does not call PyVRP's own solvers.
 
 ## Status
 
-Early alpha versions. Public API may change before `v1.0.0`.
+Early alpha (version 0.1.0). The public API may change before version 1.0.0. The package is not published on PyPI, so it is installed from source.
 
 ## Installation
 
-```bash
-pip install vrptw-fleetmin
-```
+The package builds a C++ extension during installation. You need Python 3.11 or newer, a C++17 compiler and CMake 3.20 or newer. The Python build dependencies (`scikit-build-core`, `pybind11`) are fetched automatically by `pip`.
 
-or, using the modern [`uv`](https://github.com/astral-sh/uv) Python package manager:
+From a clone of the repository:
 
 ```bash
-uv add vrptw-fleetmin
+git clone https://github.com/0nyr/vrptw-fleetmin
+cd vrptw-fleetmin
+python -m venv .venv
+source .venv/bin/activate
+pip install .            # or: pip install ".[test]" to also install pytest
 ```
 
-Binary wheels (built with [cibuildwheel](https://cibuildwheel.pypa.io/)) are published for **Linux x86_64** under the `manylinux_2_17` / `manylinux2014` profile, which covers virtually every Linux x86_64 distro back to glibc 2.17 (RHEL 7+, Ubuntu 14.04+, Debian 8+, Fedora 16+, …). On macOS, Windows, Linux aarch64, or musllinux (Alpine), `pip install vrptw-fleetmin` falls back to the source distribution and builds the C++ extension locally — that needs a C++17 toolchain on the host (see the build dependency table below).
+Once the repository is public, the same installation works without a manual clone:
 
-### Build requirements
+```bash
+pip install git+https://github.com/0nyr/vrptw-fleetmin
+```
 
-These are the build-time and runtime requirements; the table is what you need to reproduce a build from sdist. The runtime row applies to any installation; the rest only matter when building from sdist (i.e. on platforms without a published wheel).
+To run the test suite (49 tests, about 20 s):
 
-| Layer | Component | Version required |
+```bash
+pip install ".[test]"
+python -m pytest
+```
+
+### Dependencies
+
+| Component | Version range | Use |
 |---|---|---|
-| Runtime — Python | CPython | `>= 3.11` (wheels are published for 3.11, 3.12, 3.13) |
-| Runtime — deps | [`pyvrp`](https://pypi.org/project/pyvrp/) | `>= 0.12.2, < 0.13` (HGS backend; 0.13+ dropped HGS) |
-| Runtime — deps | [`mamut-routing-lib`](https://pypi.org/project/mamut-routing-lib/) | `>= 0.1` (instance loading + validation) |
-| Build — backend | [`scikit-build-core`](https://pypi.org/project/scikit-build-core/) | `>= 0.10` |
-| Build — bindings | [`pybind11`](https://pypi.org/project/pybind11/) | `>= 2.12` |
-| Build — C++ standard | `g++` / `clang++` | C++17 |
-| Build — build system | [CMake](https://cmake.org/) | `>= 3.20` |
-| Build — build driver | [Ninja](https://ninja-build.org/) | any recent version |
-| Tests (optional, extra `[test]`) | [`pytest`](https://pypi.org/project/pytest/) | `>= 7` |
+| [`pyvrp`](https://pypi.org/project/pyvrp/) | `>= 0.12.2, < 0.13` | local search and repair operators (`pyvrp.search`, `pyvrp.repair`) |
+| [`mamut-routing-lib`](https://pypi.org/project/mamut-routing-lib/) | `>= 0.12.0, < 0.13` | instance model, PyVRP conversion, solution checker |
+| [`scikit-build-core`](https://pypi.org/project/scikit-build-core/) | `>= 0.10` | build backend |
+| [`pybind11`](https://pypi.org/project/pybind11/) | `>= 2.12` | C++ bindings |
+| C++ compiler | C++17 | build |
+| [CMake](https://cmake.org/) | `>= 3.20` | build |
+| [`pytest`](https://pypi.org/project/pytest/) (extra `[test]`) | `>= 7` | tests |
+
+The `pyvrp` upper bound is needed because PyVRP 0.13 no longer ships the `pyvrp.repair` module that the ILS imports. The package has been tested on Linux x86_64 with Python 3.13, PyVRP 0.12.2, mamut-routing-lib 0.12.0, GCC 15.2 and CMake 4.1. Other Python versions and platforms have not been tested.
 
 ## Quick start
 
+The ILS works on integer costs, so a float instance (such as the Solomon instances) is first scaled by a factor `P` and rounded up. The script below is [`examples/minimize_fleet.py`](examples/minimize_fleet.py). It loads the C101 instance shipped with the tests, runs the ILS for 10 s, and checks the result on the original float instance.
+
 ```python
-from mamut_routing_lib.models import BenchmarkInstance
+"""Minimal end-to-end example: load a Solomon VRPTW instance and minimize its fleet size.
+
+Run from the repository root after installing the package:
+
+    python examples/minimize_fleet.py [path/to/instance.vrp.json]
+
+Without an argument, the script uses the C101 test fixture shipped in
+``tests/fixtures/sintef2008_n100/``. The ILS works on integer costs, so the
+float instance is first scaled by ``P = 1000`` and rounded up. The result is
+then checked and costed on the original float instance.
+"""
+
+from __future__ import annotations
+
+import sys
+from math import ceil
+from pathlib import Path
+
+from mamut_routing_lib.artifacts import load_benchmark_instance
+from mamut_routing_lib.checker import check_vrptw_solution
+from mamut_routing_lib.models import BenchmarkSolution
+
 from vrptw_fleetmin import ils_vehicle_min
 
-instance = BenchmarkInstance.from_file("C101.txt")     # Solomon-style VRPTW
-result = ils_vehicle_min(instance, time_limit=10.0)    # variant='v4' by default
-print(f"Routes: {len(result.routes)}, cost: {result.cost}")
+P = 1000  # scaling factor applied to arc costs, time windows and service times
+
+default_path = Path(__file__).resolve().parents[1] / "tests/fixtures/sintef2008_n100/C101.vrp.json"
+instance = load_benchmark_instance(sys.argv[1] if len(sys.argv) > 1 else default_path)
+
+scaled = instance.model_copy(
+    update={
+        "arc_costs": [[ceil(c * P) for c in row] for row in instance.arc_costs],
+        "time_windows": [(ceil(a * P), ceil(b * P)) for a, b in instance.time_windows],
+        "service_times": [ceil(s * P) for s in instance.service_times],
+    }
+)
+
+result = ils_vehicle_min(scaled, time_limit_s=10.0, seed=42, variant="v4", scaling_factor=P)
+
+check = check_vrptw_solution(
+    instance,
+    BenchmarkSolution(instance_name=instance.instance_name, routes=result.routes, cost=None, metadata={}),
+)
+print(f"instance: {instance.instance_name} ({instance.num_customers} customers)")
+print(f"routes: {result.num_routes}")
+print(f"solver cost (scaled by P): {result.solver_cost:.0f}")
+print(f"valid on the float instance: {check.is_valid()} ({check.status.value})")
+if check.is_valid():
+    print(f"float routing cost: {check.routing_cost:.2f}")
+print(f"wall time: {result.wall_time:.1f} s")
 ```
+
+Run from the repository root:
+
+```bash
+python examples/minimize_fleet.py
+```
+
+Output of one run on a laptop:
+
+```text
+instance: C101 (100 customers)
+routes: 10
+solver cost (scaled by P): 828960
+valid on the float instance: True (valid)
+float routing cost: 828.94
+wall time: 10.0 s
+```
+
+The ILS stops on a wall-clock budget, so the cost reached within 10 s can differ between machines and runs. The best-known solution of C101 also uses 10 routes.
 
 ## Public API
 
 ```python
-from vrptw_fleetmin import ils_vehicle_min               # convenience (variant='v4')
-from vrptw_fleetmin.ils import ils_vehicle_min           # same, explicit module
+from vrptw_fleetmin import ils_vehicle_min               # ILS entry point (variant='v4' by default)
+from vrptw_fleetmin.ils import ILSResult, ILSTrace       # result types
 from vrptw_fleetmin.construct import (                   # C++ constructive heuristics
     VRPTWData,
     ConstructionResult,
@@ -71,45 +143,45 @@ from vrptw_fleetmin.construct import (                   # C++ constructive heur
 )
 ```
 
+`ils_vehicle_min(scaled_instance, time_limit_s, seed, *, variant="v4", float_instance=None, base_instance=None, scaling_factor=1000)` returns an `ILSResult` with the fields `routes`, `solver_cost` (on the scaled instance), `num_routes`, `trace` and `wall_time`. When both `float_instance` and `base_instance` are given, each accepted solution is also checked for feasibility on `float_instance`.
+
 ## ILS variants
 
-The `variant` parameter selects between four ILS strategies documented in the
-paper:
+All variants share the same structure.
 
-- `v1` — greedy_repair + basic perturbation
-- `v2` — nearest_route_insert + multi-route ruin
-- `v3` — dual repair + 10% slack creation
-- `v4` — adaptive (default, recommended): starts fast (v2-style), escalates to
-  slack creation (v3-style) when stagnating.
+1. Kickstart: run 4 constructive heuristics (nearest-neighbor, parallel best-insertion, regret-2 and regret-3), polish each solution with PyVRP local search, and keep the one with the fewest routes, then the lowest cost.
+2. Route elimination: remove one route and reinsert its customers into the others, then polish with local search and, if needed, with a local search whose penalties are boosted by the scaling factor. A candidate is accepted only if it is feasible and has fewer routes. The route to remove is the smallest one (probability 0.5), the one with the lowest demand (0.2), a random one among the 3 smallest (0.2) or a random one (0.1).
+3. Perturbation: after a failed elimination, remove a random fraction of the customers and reinsert them with `greedy_repair`. The fraction grows with the number of consecutive failures.
 
-All four variants are kept for reference and reproducibility, but `v4` is recommended for general use.
+The variants differ in the reinsertion operator and the perturbation schedule.
+
+- `v1`: reinsertion with `greedy_repair`, 5 tries per elimination attempt, perturbation fractions 8 %, 15 % and 25 %.
+- `v2`: reinsertion with `nearest_route_insert`, 7 tries, perturbation fractions 6 %, 12 % and 25 %, and after 20 consecutive failures the 3 smallest routes are destroyed and rebuilt.
+- `v3`: before reinsertion, 10 % of the customers of the other routes are also removed, and both `greedy_repair` and `nearest_route_insert` are tried. 10 tries, perturbation fractions 8 %, 15 % and 25 %, and the 3 smallest routes are rebuilt after 15 consecutive failures.
+- `v4` (default): uses the `v2` reinsertion until 5 consecutive failures, then switches to the `v3` reinsertion. 8 tries, perturbation fractions 6 %, 15 % and 25 %, and the 3 smallest routes are rebuilt after 18 consecutive failures.
+
+The exact thresholds are in [`src/vrptw_fleetmin/ils.py`](src/vrptw_fleetmin/ils.py). The variants `v1` to `v3` are kept for reference and reproducibility.
+
+## Test data
+
+The directory [`tests/fixtures/sintef2008_n100/`](tests/fixtures/sintef2008_n100/) holds 6 Solomon (1987) VRPTW instances with 100 customers (C101, C201, R101, R201, RC101, RC201) and one best-known solution for each. They are copies of files from the Sintef2008 family of the [MAMUT-routing](https://github.com/ANR-MAMUT/MAMUT-routing) benchmark repository (commit `8e3aa713032a`), and they are used only by the tests and the example. These files are not covered by the MIT license of this repository. They keep the terms stated in the `LICENSE`, `README.md` and `NOTICE.mamut-routing` files of that directory, which must be preserved when the files are redistributed.
 
 ## Citation
 
-If you use this package in academic work, please cite:
+The method is described in chapter 7 of the PhD thesis of Florian Rascoussier (IMT Atlantique and INSA Lyon, 2026, in preparation). An article with Anton Kuznets is in preparation.
 
-```
-TODO: paper6 citation block, to be filled in once accepted at C&OR.
-```
-
-You can also cite this repository directly. See `CITATION.cff` for a structured citation entry or click on the [GitHub "Cite this repository"](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-citation-files) button.
+In the meantime, you can cite this repository with the metadata in [`CITATION.cff`](CITATION.cff), which GitHub also exposes through the "Cite this repository" button.
 
 ## Related projects
 
-- [MAMUT-routing](https://github.com/0nyr/MAMUT-routing) — VRPTW benchmark dataset and tooling.
-- [mamut-routing-lib](https://pypi.org/project/mamut-routing-lib/) — Python
-  library for loading and validating VRPTW benchmark instances; used by this package in tests and examples.
-- [vrptw-powerful-route-minimization-heuristic](https://github.com/Astronomax/vrptw-powerful-route-minimization-heuristic)
-  — [Anton Kuznets](https://github.com/Astronomax)'s open-source NBRMH implementation, used as a baseline in the paper.
-- [vrptw-fleet-lb-cg](https://github.com/0nyr/vrptw-fleet-lb-cg) — companion
-  source-only release of the column-generation lower bound on minimum fleet size used in the same paper.
+- [MAMUT-routing](https://github.com/ANR-MAMUT/MAMUT-routing): VRPTW benchmark instances, best-known solutions and tooling, source of the test fixtures.
+- [mamut-routing-lib](https://pypi.org/project/mamut-routing-lib/): Python library for loading and validating routing benchmark instances, used by this package.
+- [vrptw-powerful-route-minimization-heuristic](https://github.com/Astronomax/vrptw-powerful-route-minimization-heuristic): open-source implementation of the route minimization heuristic of Nagata and Bräysy (2009) by [Anton Kuznets](https://github.com/Astronomax).
 
 ## Acknowledgements
 
-This work was developed during the [PhD of Florian Rascoussier](https://theses.fr/s386454), funded by [IMT
-Atlantique](https://www.imt-atlantique.fr/en) through the ANR-MAMUT project ([ANR-22-CE22-0016](https://anr.fr/Projet-ANR-22-CE22-0016)) and hosted at [INSA Lyon](https://www.insa-lyon.fr/en), within the context of the [CITI](https://www.citi-lab.fr/) and [Lab-STICC](https://labsticc.fr/en)
-research laboratories.
+This work was developed during the [PhD of Florian Rascoussier](https://theses.fr/s386454), funded by [IMT Atlantique](https://www.imt-atlantique.fr/en) through the ANR-MAMUT project ([ANR-22-CE22-0016](https://anr.fr/Projet-ANR-22-CE22-0016)) and hosted at [INSA Lyon](https://www.insa-lyon.fr/en), within the [CITI](https://www.citi-lab.fr/) and [Lab-STICC](https://labsticc.fr/en) research laboratories.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+The code is released under the MIT license (see [LICENSE](LICENSE)). The test fixtures keep their own terms (see [Test data](#test-data)).
