@@ -28,7 +28,7 @@ The same installation also works without a manual clone:
 pip install git+https://github.com/0nyr/vrptw-fleetmin
 ```
 
-To run the test suite (49 tests, about 20 s):
+To run the test suite (52 tests, about 20 s):
 
 ```bash
 pip install ".[test]"
