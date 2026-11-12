@@ -5,20 +5,20 @@ build-backend = "scikit_build_core.build"
 [project]
 name = "vrptw-fleetmin"
 version = "0.1.0"
-description = "Fast VRPTW constructive heuristics and an ILS-based fleet-size minimizer (PyVRP 0.12.2 HGS local-search backend)."
+description = "VRPTW constructive heuristics and an ILS-based fleet-size minimizer built on the PyVRP 0.12.2 local-search operators."
 readme = "README.md"
 authors = [
-    { name = "Florian Rascoussier", email = "rascoussier.florian@gmail.com" },
+    { name = "Florian Rascoussier", email = "onyr.maintainer@gmail.com" },
 ]
 maintainers = [
-    { name = "Florian Rascoussier", email = "rascoussier.florian@gmail.com" },
+    { name = "Florian Rascoussier", email = "onyr.maintainer@gmail.com" },
 ]
 license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.11"
 dependencies = [
-    "pyvrp>=0.12.2,<0.13", # last 0.12.x; 0.13+ dropped HGS solver (switch to ILS) and renamed private APIs we depend on
-    "mamut-routing-lib>=0.1",
+    "pyvrp>=0.12.2,<0.13", # tested with 0.12.2 (0.13 no longer ships pyvrp.repair)
+    "mamut-routing-lib>=0.12.0,<0.13", # tested with 0.12.0
 ]
 keywords = [
     "vehicle routing problem",
@@ -52,9 +52,8 @@ classifiers = [
 Homepage = "https://github.com/0nyr/vrptw-fleetmin"
 Repository = "https://github.com/0nyr/vrptw-fleetmin"
 Issues = "https://github.com/0nyr/vrptw-fleetmin/issues"
-"Related: MAMUT-routing" = "https://github.com/0nyr/MAMUT-routing"
+"Related: MAMUT-routing" = "https://github.com/ANR-MAMUT/MAMUT-routing"
 "Related: mamut-routing-lib" = "https://pypi.org/project/mamut-routing-lib/"
-"Related: vrptw-fleet-lb-cg" = "https://github.com/0nyr/vrptw-fleet-lb-cg"
 
 [project.optional-dependencies]
 test = [
