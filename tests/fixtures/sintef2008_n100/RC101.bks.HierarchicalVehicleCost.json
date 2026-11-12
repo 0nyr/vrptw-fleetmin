@@ -23,7 +23,6 @@
         "date": "21-05-13",
         "reference": "N/A",
         "source": "sintef",
-        "source_path": "raw_benchmarks/Sintef2008_website_bks/sintef_vrptw_solutions/n=100/RC101.sol.txt",
         "status": "heuristic",
         "validated_cost": 1696.9491570055197,
         "validated_num_vehicles": 14

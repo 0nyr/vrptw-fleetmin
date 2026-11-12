@@ -13,7 +13,6 @@
         "date": "30.12.2003 18:49:25",
         "reference": "Chapter in G. Hasle, K-A Lie, E. Quak (eds): Geometric Modelling, Numerical Simulation, and Optimization. ISBN 978-3-540-68782-5, Springer 2007.",
         "source": "sintef",
-        "source_path": "raw_benchmarks/Sintef2008_website_bks/sintef_vrptw_solutions/n=100/R201.sol.txt",
         "status": "heuristic",
         "validated_cost": 1252.371221588721,
         "validated_num_vehicles": 4
